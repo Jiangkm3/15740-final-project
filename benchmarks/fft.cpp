@@ -2,15 +2,16 @@
 #include <chrono>
 #include <complex>
 #include <vector>
-
 // #include <mmintrin.h>
 // #include <xmmintrin.h>
 
-using cd = std::complex<double>;
+using namespace std;
+
+using cd = complex<double>;
 const double PI = acos(-1);
 
 // Iterative implementation of FFT
-void fft(std::vector<cd> & a, bool invert) {
+void fft(vector<cd> & a, bool invert) {
     int n = a.size();
 
     for (int i = 1, j = 0; i < n; i++) {
@@ -44,8 +45,8 @@ void fft(std::vector<cd> & a, bool invert) {
     }
 }
 
-std::vector<int> multiply(std::vector<int> const& a, std::vector<int> const& b) {
-    std::vector<cd> fa(a.begin(), a.end()), fb(b.begin(), b.end());
+vector<int> multiply(vector<int> const& a, vector<int> const& b) {
+    vector<cd> fa(a.begin(), a.end()), fb(b.begin(), b.end());
     int n = 1;
     while (n < a.size() + b.size()) 
         n <<= 1;
@@ -58,32 +59,29 @@ std::vector<int> multiply(std::vector<int> const& a, std::vector<int> const& b) 
         fa[i] *= fb[i];
     fft(fa, true);
 
-    std::vector<int> result(n);
+    vector<int> result(n);
     for (int i = 0; i < n; i++)
         result[i] = round(fa[i].real());
     return result;
 }
 
+// Polynomial is of size `SIZE`
 int main(int args, char *argv[]) {
-    int size = std::stoi(argv[1]);
-    std::vector<int> a;
-    std::vector<int> b;
-    for (int i = 0; i < size; i++) {
-        a.push_back(i);
-        b.push_back(i);
+    int SIZE = stoi(argv[1]);
+    vector<int> a(SIZE);
+    vector<int> b(SIZE);
+    for (int i = 0; i < SIZE; i++) {
+        a[i] = i;
+        b[i] = i;
     }
 
-    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    // Record Runtime
+    chrono::steady_clock::time_point begin = chrono::steady_clock::now();
+    vector<int> c = multiply(a, b);
+    chrono::steady_clock::time_point end = chrono::steady_clock::now();
+    cout << "Time difference = " << chrono::duration_cast<chrono::microseconds>(end - begin).count() << "[µs]" << endl;
 
-    std::vector<int> c = multiply(a, b);
-
-    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-    std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
-
-    // for (int i = 0; i < c.size(); i++) {
-        // std::cout << c[i] << " ";
-    // }
-    // std::cout << std::endl;
-    std::cout << c.size() << std::endl;
+    // Print the size of the output so the compiler does not eliminate everything
+    cout << "Output = " << c.size() << endl;
     return 0;
 }
