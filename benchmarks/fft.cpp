@@ -14,6 +14,7 @@ const double PI = acos(-1);
 void fft(vector<cd> & a, bool invert) {
     int n = a.size();
 
+    cout << "REVERSE" << endl;
     for (int i = 1, j = 0; i < n; i++) {
         // bit reversal
         int bit = n >> 1;
@@ -21,16 +22,22 @@ void fft(vector<cd> & a, bool invert) {
             j ^= bit;
         j ^= bit;
 
-        if (i < j)
+        if (i < j) {
+            cout << "ACCESS: " << i << endl;
+            cout << "ACCESS: " << j << endl;
             swap(a[i], a[j]);
+        }
     }
 
+    cout << "\nCOMBINE" << endl;
     for (int len = 2; len <= n; len <<= 1) {
         double ang = 2 * PI / len * (invert ? -1 : 1);
         cd wlen(cos(ang), sin(ang));
         for (int i = 0; i < n; i += len) {
             cd w(1);
             for (int j = 0; j < len / 2; j++) {
+                cout << "ACCESS: " << i + j << endl;
+                cout << "ACCESS: " << i + j + len / 2 << endl;
                 cd u = a[i+j], v = a[i+j+len/2] * w;
                 a[i+j] = u + v;
                 a[i+j+len/2] = u - v;
@@ -55,13 +62,15 @@ vector<int> multiply(vector<int> const& a, vector<int> const& b) {
 
     fft(fa, false);
     fft(fb, false);
-    for (int i = 0; i < n; i++)
+    for (int i = 0; i < n; i++) {
         fa[i] *= fb[i];
+    }
     fft(fa, true);
 
     vector<int> result(n);
-    for (int i = 0; i < n; i++)
+    for (int i = 0; i < n; i++) {
         result[i] = round(fa[i].real());
+    }
     return result;
 }
 
