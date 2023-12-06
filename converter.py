@@ -12,8 +12,8 @@ if __name__ == "__main__":
 
     # Prefetcher Headers
     f_tester.write("#define _QUEUE " + gap + "\n\n")
-    f_tester.write("#include <mmintrin.h>\n")
-    f_tester.write("#include <xmmintrin.h>\n")
+    f_tester.write("// #include <mmintrin.h>\n")
+    f_tester.write("// #include <xmmintrin.h>\n")
 
     nextline = f_raw.readline()
 
@@ -89,11 +89,11 @@ if __name__ == "__main__":
                         # Initialize a new queue for previous iteration of the index
                         head.insert(0, f"int {id_q}[_QUEUE];\n")
                         index_list.append(index)
-                    head.append(INDENT + f"_mm_prefetch((const char *)&{array}[{index}], _MM_HINT_T0);\n")
+                    head.append(INDENT + f"// _mm_prefetch((const char *)&{array}[{index}], _MM_HINT_T0);\n")
                     head.append(INDENT + f"{id_q}[_IT] = {index};\n")
                     
                     # Store the prefetched address into queue
-                    body.append(INDENT + f"_mm_prefetch((const char *)&{array}[{index}], _MM_HINT_T0);\n")
+                    body.append(INDENT + f"// _mm_prefetch((const char *)&{array}[{index}], _MM_HINT_T0);\n")
                     body.append(INDENT + "_NEXT_AVAIL = (_NEXT_AVAIL + 1) % _QUEUE;\n")
                     body.append(INDENT + f"{id_q}[_NEXT_AVAIL] = {index};\n")
                     # Load the address used for access out of the queue

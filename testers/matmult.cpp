@@ -1,7 +1,9 @@
+#define _QUEUE 3
+
+// #include <mmintrin.h>
+// #include <xmmintrin.h>
 #include <iostream>
 #include <chrono>
-#include <mmintrin.h>
-#include <xmmintrin.h>
 
 using namespace std;
 
@@ -12,12 +14,35 @@ void mulMat(int X, int Y, int Z, int* A, int* B, int* C) {
     for (int i = 0; i < X; i++) {
         for (int k = 0; k < Z; k++) {
             mat(C, i, k, Z) = 0;
-            for (int j = 0; j < Y; j++) {
-                if (j < Y - 1) {
-                    _mm_prefetch((const char *)&mat(B, j, k, Z), _MM_HINT_NTA);
-                }
-                mat(C, i, k, Z) += mat(A, i, j, Y) * mat(B, j, k, Z);
-            }
+            int j = 0;
+            int tmp = k;
+
+int tmp_QUEUE[_QUEUE];
+   int _NEXT_AVAIL = _QUEUE - 2;
+   int _NEXT_ACCESS = 0;
+   for (int _IT = 0; _IT < _QUEUE; _IT++) {
+               tmp += Z;
+   // _mm_prefetch((const char *)&B[tmp], _MM_HINT_T0);
+   tmp_QUEUE[_IT] = tmp;
+   }
+   for (int _IT = 0; _IT < Y - _QUEUE; _IT++){
+   tmp = tmp_QUEUE[_NEXT_AVAIL];
+               tmp += Z;
+   // _mm_prefetch((const char *)&B[tmp], _MM_HINT_T0);
+   _NEXT_AVAIL = (_NEXT_AVAIL + 1) % _QUEUE;
+   tmp_QUEUE[_NEXT_AVAIL] = tmp;
+   tmp = tmp_QUEUE[_NEXT_ACCESS];
+   _NEXT_ACCESS = (_NEXT_ACCESS + 1) % _QUEUE;
+               mat(C, i, k, Z) += mat(A, i, j, Y) * B[tmp];
+               j = j + 1;
+   }
+   for (int _IT = 0; _IT < _QUEUE; _IT++){
+               tmp += Z;
+   tmp = tmp_QUEUE[_NEXT_ACCESS];
+   _NEXT_ACCESS = (_NEXT_ACCESS + 1) % _QUEUE;
+               mat(C, i, k, Z) += mat(A, i, j, Y) * B[tmp];
+               j = j + 1;
+   }
         }
     }
 }
@@ -51,7 +76,11 @@ int main(int args, char *argv[]) {
     cout << "Time difference = " << chrono::duration_cast<chrono::milliseconds>(end - begin).count() << "[ms]" << endl;
 
     // Print something out so the compiler does not eliminate everything
-    cout << "Output = " << C[20] << endl;
+    cout << "Output = " << endl;
+    for (int k = 0; k < X * Z; k++) {
+        cout << C[k] << ", ";
+    }
+    cout << endl;
  
     return 0;
 }
