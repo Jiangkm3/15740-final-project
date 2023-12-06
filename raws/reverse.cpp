@@ -12,28 +12,24 @@ int main(int args, char *argv[]) {
     int gap = stoi(argv[2]);
 
     int* A = (int*) malloc(SIZE * sizeof(int));
-    int s = 0;
-
-    for (int i = 0; i < SIZE; i++) {
-        A[i] = i + 1;
-    }
+    int* B = (int*) malloc(SIZE * sizeof(int));
+    int* C = (int*) malloc(SIZE * sizeof(int));
 
     // Record Runtime
     chrono::steady_clock::time_point begin = chrono::steady_clock::now();
-    for (int i = SIZE - 1; i != 0; i--) {
-        if (i > gap) {
-            // _mm_prefetch((const char *)&A[i - gap], _MM_HINT_T0);
-            _mm_prefetch((const char *)&A[0], _MM_HINT_T0);
+    for (int i = SIZE - 1; i >= 0; i--) {
+        if (i > gap * sizeof(int)) {
+            _mm_prefetch((const char *)&A[i - gap], _MM_HINT_NTA);
         }
-        for (int j = 0; j != 100; j++) {
-            s += A[i];
+        for (int j = 0; j < 100; j++) {
+            C[i] = k * A[i] * B[j];
         }
     }
     chrono::steady_clock::time_point end = chrono::steady_clock::now();
     cout << "Time difference = " << chrono::duration_cast<chrono::milliseconds>(end - begin).count() << "[ms]" << endl;
 
     // Print something out so the compiler does not eliminate everything
-    cout << "Output = " << s << endl;
+    cout << "Output = " << C[k] << endl;
  
     return 0;
 }

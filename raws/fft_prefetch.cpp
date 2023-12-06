@@ -1,11 +1,11 @@
+#define QUEUE 10
+// #include <mmintrin.h>
+// #include <xmmintrin.h>
+
 #include <iostream>
 #include <chrono>
 #include <complex>
 #include <vector>
-#include <mmintrin.h>
-#include <xmmintrin.h>
-
-#define QUEUE 10
 
 using namespace std;
 
@@ -15,36 +15,47 @@ const double PI = acos(-1);
 // Iterative implementation of FFT
 void fft(vector<cd> & a, bool invert) {
     int n = a.size();
-
-    int j_q[QUEUE];
+    int i = 1;
     int j = 0;
-    int next_rev = 0;
 
-    for (int i = 1; i <= QUEUE; i++) {
+    int _NEXT_ACCESS = 0;
+    int _NEXT_AVAIL = QUEUE - 2;
+    int j_QUEUE[QUEUE];
+    for (int _IT = 0; _IT < QUEUE - 1; _IT++) {
         int bit = n >> 1;
         for (; j & bit; bit >>= 1)
             j ^= bit;
         j ^= bit;
-        j_q[i - 1] = j;
-        _mm_prefetch((const char *)&a[j_q[i - 1]], _MM_HINT_T0);
+        // _mm_prefetch((const char *)&a[j], _MM_HINT_T0);
+        j_QUEUE[_IT] = j;
     }
-    int next_avail = 0;
 
-    for (int i = 1; i < n; i++) {
-        if (i < j_q[next_rev]) {
-            swap(a[i], a[j_q[next_rev]]);
-        }
-        next_rev = (next_rev + 1) % QUEUE;
-
+    for (int _IT = 0; _IT < n-1 - QUEUE; _IT++) {
+        j = j_QUEUE[_NEXT_AVAIL];
         // bit reversal
         int bit = n >> 1;
         for (; j & bit; bit >>= 1)
             j ^= bit;
         j ^= bit;
-        j_q[next_avail] = j;
-        _mm_prefetch((const char *)&a[j_q[next_avail]], _MM_HINT_T0);
+        // _mm_prefetch((const char *)&a[j], _MM_HINT_T0);
+        _NEXT_AVAIL = (_NEXT_AVAIL + 1) % QUEUE;
+        j_QUEUE[_NEXT_AVAIL] = j;
 
-        next_avail = (next_avail + 1) % QUEUE;
+        j = j_QUEUE[_NEXT_ACCESS];
+        _NEXT_ACCESS = (_NEXT_ACCESS + 1) % QUEUE;
+        if (i < j) {
+            swap(a[i], a[j]);
+        }
+        i = i + 1;
+    }
+
+    for (int _IT = 0; _IT < QUEUE; _IT++) {
+        j = j_QUEUE[_NEXT_ACCESS];
+        _NEXT_ACCESS = (_NEXT_ACCESS + 1) % QUEUE;
+        if (i < j) {
+            swap(a[i], a[j]);
+        }
+        i = i + 1;
     }
 
     for (int len = 2; len <= n; len <<= 1) {
@@ -106,6 +117,10 @@ int main(int args, char *argv[]) {
     cout << "Time difference = " << chrono::duration_cast<chrono::milliseconds>(end - begin).count() << "[ms]" << endl;
 
     // Print the size of the output so the compiler does not eliminate everything
-    cout << "Output = " << c.size() << endl;
+    cout << "Output = " << endl;
+    for (int k = 0; k < c.size(); k++) {
+        cout << c[k] << ", ";
+    }
+    cout << endl;
     return 0;
 }
