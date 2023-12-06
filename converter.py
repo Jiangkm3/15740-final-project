@@ -1,7 +1,7 @@
 import os, sys
 
 INDENT = "   "
-REPEAT = 5
+REPEAT = 10
 
 def converter(benchmark_name, gap):
     f_raw = open(os.path.join("raws", benchmark_name + "_raw.cpp"), 'r')
@@ -9,8 +9,8 @@ def converter(benchmark_name, gap):
 
     # Prefetcher Headers
     f_tester.write("#define _QUEUE " + gap + "\n\n")
-    f_tester.write("// #include <mmintrin.h>\n")
-    f_tester.write("// #include <xmmintrin.h>\n")
+    f_tester.write("#include <mmintrin.h>\n")
+    f_tester.write("#include <xmmintrin.h>\n")
 
     nextline = f_raw.readline()
 
@@ -86,11 +86,11 @@ def converter(benchmark_name, gap):
                         # Initialize a new queue for previous iteration of the index
                         head.insert(0, f"int {id_q}[_QUEUE];\n")
                         index_list.append(index)
-                    head.append(INDENT + f"// _mm_prefetch((const char *)&{array}[{index}], _MM_HINT_T0);\n")
+                    head.append(INDENT + f"_mm_prefetch((const char *)&{array}[{index}], _MM_HINT_T0);\n")
                     head.append(INDENT + f"{id_q}[_IT] = {index};\n")
                     
                     # Store the prefetched address into queue
-                    body.append(INDENT + f"// _mm_prefetch((const char *)&{array}[{index}], _MM_HINT_T0);\n")
+                    body.append(INDENT + f"_mm_prefetch((const char *)&{array}[{index}], _MM_HINT_T0);\n")
                     body.append(INDENT + "_NEXT_AVAIL = (_NEXT_AVAIL + 1) % _QUEUE;\n")
                     body.append(INDENT + f"{id_q}[_NEXT_AVAIL] = {index};\n")
                     # Load the address used for access out of the queue
@@ -150,13 +150,20 @@ if __name__ == "__main__":
     tester_file_name = os.path.join("testers", benchmark_name + ".cpp")
     binary_file_name = os.path.join("testers", benchmark_name + ".exe")
     error_file_name = os.path.join("results", "log.txt")
-    os.system(f"echo \"\" > {result_file_name}")
 
-    for gap in range(1, max_gap):
-        os.system(f"echo \"{gap}\n\" >> {result_file_name}")
+    no_prefetch_file_name = os.path.join("raws", benchmark_name + "_no_prefetch.cpp")
+    no_prefetch_binary_name = os.path.join("raws", benchmark_name + ".exe")
+    os.system(f"break > {result_file_name}")
+
+    # Test Baseline
+    os.system(f"g++ {no_prefetch_file_name} -o {no_prefetch_binary_name} 2> {error_file_name}")
+    os.system(f"echo BASELINE >> {result_file_name}")
+    for i in range(REPEAT):
+        os.system(f"{no_prefetch_binary_name} {INPUT} >> {result_file_name}")
+
+    for gap in range(2, max_gap):
+        os.system(f"echo {gap} >> {result_file_name}")
         converter(benchmark_name, str(gap))
         os.system(f"g++ {tester_file_name} -o {binary_file_name} 2> {error_file_name}")
         for i in range(REPEAT):
             os.system(f"{binary_file_name} {INPUT} >> {result_file_name}")
-
-    f_result = open(result_file_name, 'r')

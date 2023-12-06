@@ -1,7 +1,7 @@
-#define _QUEUE 9
+#define _QUEUE 39
 
-// #include <mmintrin.h>
-// #include <xmmintrin.h>
+#include <mmintrin.h>
+#include <xmmintrin.h>
 #include <iostream>
 #include <chrono>
 #include <complex>
@@ -26,7 +26,7 @@ int j_QUEUE[_QUEUE];
        for (; j & bit; bit >>= 1)
            j ^= bit;
        j ^= bit;
-   // _mm_prefetch((const char *)&a[j], _MM_HINT_T0);
+   _mm_prefetch((const char *)&a[j], _MM_HINT_T0);
    j_QUEUE[_IT] = j;
    }
    for (int _IT = 0; _IT < n-1 - _QUEUE; _IT++){
@@ -35,7 +35,7 @@ int j_QUEUE[_QUEUE];
        for (; j & bit; bit >>= 1)
            j ^= bit;
        j ^= bit;
-   // _mm_prefetch((const char *)&a[j], _MM_HINT_T0);
+   _mm_prefetch((const char *)&a[j], _MM_HINT_T0);
    _NEXT_AVAIL = (_NEXT_AVAIL + 1) % _QUEUE;
    j_QUEUE[_NEXT_AVAIL] = j;
    j = j_QUEUE[_NEXT_ACCESS];
