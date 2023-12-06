@@ -1,12 +1,9 @@
 # 15740-final-project
 
-## Examples
+## Tester
+Unroll loops in a custom C++ program with annotations for cache prefetch. Automatically identify the optimal number of iterations to unroll.
 
-### Fast Fourier Transform
-Run with `./fft.out X`, where `X` is an integer describing the size of the polynomial
-
-### Matrix Multiplication
-Run with `./matmult.out X Y Z`, where `X`, `Y`, `Z` are integers describing the size of the two matrices. Matrix A is of size `X * Y` and B of size `Y * Z`.
-
-### Merge Sort
-Run with `./mergesort.out X`, where `X` is an integer describing the size of the array
+Test using `python3 converter.py <benchmark_name> <max_unroll> <input>`, where
+* `<benchmark_name>` is the name of the benchmark, currently supporting `fft` and `matmult`
+* `<max_unroll>` is the maximum number of iterations the tester should unroll
+* `<input>` is the input of the benchmark. In both benchmarks we want `<max_unroll> < <input>`
