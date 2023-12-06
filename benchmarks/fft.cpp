@@ -2,8 +2,10 @@
 #include <chrono>
 #include <complex>
 #include <vector>
-// #include <mmintrin.h>
-// #include <xmmintrin.h>
+#include <mmintrin.h>
+#include <xmmintrin.h>
+
+#define QUEUE 10
 
 using namespace std;
 
@@ -14,30 +16,43 @@ const double PI = acos(-1);
 void fft(vector<cd> & a, bool invert) {
     int n = a.size();
 
-    cout << "REVERSE" << endl;
-    for (int i = 1, j = 0; i < n; i++) {
+    int j_q[QUEUE];
+    int j = 0;
+    int next_rev = 0;
+
+    for (int i = 1; i <= QUEUE; i++) {
+        int bit = n >> 1;
+        for (; j & bit; bit >>= 1)
+            j ^= bit;
+        j ^= bit;
+        j_q[i - 1] = j;
+        _mm_prefetch((const char *)&a[j_q[i - 1]], _MM_HINT_T0);
+    }
+    int next_avail = 0;
+
+    for (int i = 1; i < n; i++) {
+        if (i < j_q[next_rev]) {
+            swap(a[i], a[j_q[next_rev]]);
+        }
+        next_rev = (next_rev + 1) % QUEUE;
+
         // bit reversal
         int bit = n >> 1;
         for (; j & bit; bit >>= 1)
             j ^= bit;
         j ^= bit;
+        j_q[next_avail] = j;
+        _mm_prefetch((const char *)&a[j_q[next_avail]], _MM_HINT_T0);
 
-        if (i < j) {
-            cout << "ACCESS: " << i << endl;
-            cout << "ACCESS: " << j << endl;
-            swap(a[i], a[j]);
-        }
+        next_avail = (next_avail + 1) % QUEUE;
     }
 
-    cout << "\nCOMBINE" << endl;
     for (int len = 2; len <= n; len <<= 1) {
         double ang = 2 * PI / len * (invert ? -1 : 1);
         cd wlen(cos(ang), sin(ang));
         for (int i = 0; i < n; i += len) {
             cd w(1);
             for (int j = 0; j < len / 2; j++) {
-                cout << "ACCESS: " << i + j << endl;
-                cout << "ACCESS: " << i + j + len / 2 << endl;
                 cd u = a[i+j], v = a[i+j+len/2] * w;
                 a[i+j] = u + v;
                 a[i+j+len/2] = u - v;
@@ -88,7 +103,7 @@ int main(int args, char *argv[]) {
     chrono::steady_clock::time_point begin = chrono::steady_clock::now();
     vector<int> c = multiply(a, b);
     chrono::steady_clock::time_point end = chrono::steady_clock::now();
-    cout << "Time difference = " << chrono::duration_cast<chrono::microseconds>(end - begin).count() << "[µs]" << endl;
+    cout << "Time difference = " << chrono::duration_cast<chrono::milliseconds>(end - begin).count() << "[ms]" << endl;
 
     // Print the size of the output so the compiler does not eliminate everything
     cout << "Output = " << c.size() << endl;
