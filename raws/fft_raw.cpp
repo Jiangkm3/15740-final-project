@@ -91,6 +91,6 @@ int main(int args, char *argv[]) {
     cout << "Time difference = " << chrono::duration_cast<chrono::milliseconds>(end - begin).count() << "[ms]" << endl;
 
     // Print the size of the output so the compiler does not eliminate everything
-    cout << "Output = " << c.size() << endl;
+    // cout << "Output = " << c.size() << endl;
     return 0;
 }

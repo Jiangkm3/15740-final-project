@@ -1,0 +1,64 @@
+
+1
+
+Time difference = 364[ms]
+Time difference = 356[ms]
+Time difference = 356[ms]
+Time difference = 356[ms]
+Time difference = 356[ms]
+2
+
+Time difference = 382[ms]
+Time difference = 358[ms]
+Time difference = 358[ms]
+Time difference = 361[ms]
+Time difference = 360[ms]
+3
+
+Time difference = 366[ms]
+Time difference = 358[ms]
+Time difference = 357[ms]
+Time difference = 359[ms]
+Time difference = 358[ms]
+4
+
+Time difference = 367[ms]
+Time difference = 358[ms]
+Time difference = 359[ms]
+Time difference = 359[ms]
+Time difference = 358[ms]
+5
+
+Time difference = 383[ms]
+Time difference = 357[ms]
+Time difference = 358[ms]
+Time difference = 358[ms]
+Time difference = 358[ms]
+6
+
+Time difference = 364[ms]
+Time difference = 358[ms]
+Time difference = 357[ms]
+Time difference = 358[ms]
+Time difference = 359[ms]
+7
+
+Time difference = 382[ms]
+Time difference = 357[ms]
+Time difference = 357[ms]
+Time difference = 357[ms]
+Time difference = 358[ms]
+8
+
+Time difference = 364[ms]
+Time difference = 357[ms]
+Time difference = 358[ms]
+Time difference = 357[ms]
+Time difference = 357[ms]
+9
+
+Time difference = 365[ms]
+Time difference = 357[ms]
+Time difference = 357[ms]
+Time difference = 357[ms]
+Time difference = 357[ms]

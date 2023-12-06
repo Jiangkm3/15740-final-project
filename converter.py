@@ -1,12 +1,9 @@
 import os, sys
 
 INDENT = "   "
+REPEAT = 5
 
-if __name__ == "__main__":
-    benchmark_name = sys.argv[1]
-    # gap is a STRING!
-    gap = sys.argv[2]
-
+def converter(benchmark_name, gap):
     f_raw = open(os.path.join("raws", benchmark_name + "_raw.cpp"), 'r')
     f_tester = open(os.path.join("testers", benchmark_name + ".cpp"), 'w')
 
@@ -141,3 +138,25 @@ if __name__ == "__main__":
     
     f_raw.close()
     f_tester.close()
+
+if __name__ == "__main__":
+    benchmark_name = sys.argv[1]
+    # gap is a STRING!
+    max_gap = int(sys.argv[2])
+    # PROGRAM INPUT, a STRING
+    INPUT = int(sys.argv[3])
+    
+    result_file_name = os.path.join("results", benchmark_name + ".txt")
+    tester_file_name = os.path.join("testers", benchmark_name + ".cpp")
+    binary_file_name = os.path.join("testers", benchmark_name + ".exe")
+    error_file_name = os.path.join("results", "log.txt")
+    os.system(f"echo \"\" > {result_file_name}")
+
+    for gap in range(1, max_gap):
+        os.system(f"echo \"{gap}\n\" >> {result_file_name}")
+        converter(benchmark_name, str(gap))
+        os.system(f"g++ {tester_file_name} -o {binary_file_name} 2> {error_file_name}")
+        for i in range(REPEAT):
+            os.system(f"{binary_file_name} {INPUT} >> {result_file_name}")
+
+    f_result = open(result_file_name, 'r')
