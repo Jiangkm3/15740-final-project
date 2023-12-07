@@ -1,12 +1,12 @@
 #include <iostream>
-#include <math.h>
 #include <chrono>
+#include <vector>
 
 using namespace std;
-#define SIZE 170000
+
 
 /* Function to merge the two haves arr[l..m] and arr[m+1..r] of array arr[] */
-void merge(int arr[], int l, int m, int r);
+void merge(vector<int> & arr, int l, int m, int r);
 
 // Utility function to find minimum of two integers
 int min(int x, int y) {
@@ -14,7 +14,7 @@ int min(int x, int y) {
 }
 
 /* Iterative mergesort function to sort arr[0...n-1] */
-void mergeSort(int arr[], int n) {
+void mergeSort(vector<int> & arr, int n) {
     int curr_size;
     int left_start;
     
@@ -31,14 +31,13 @@ void mergeSort(int arr[], int n) {
             int right_end = min(left_start + 2 * curr_size - 1, n - 1);
 
             // Merge Subarrays arr[left_start...mid] & arr[mid+1...right_end]
-            cout << "left = " << left_start << ", mid = " << mid << ", right = " << right_end << endl;
             merge(arr, left_start, mid, right_end);
         }
     }
 }
 
 /* Function to merge the two halves arr[l..m] and arr[m+1..r] of array arr[] */
-void merge(int arr[], int l, int m, int r) {
+void merge(vector<int> & arr, int l, int m, int r) {
     int i, j, k;
     int n1 = m - l + 1;
     int n2 = r - m;
@@ -84,16 +83,16 @@ void merge(int arr[], int l, int m, int r) {
 
 int main(int args, char *argv[]) {
     int n = stoi(argv[1]);
-    int arr[SIZE];
+    vector<int> arr;
     for (int i = 0; i < n; i++) {
-        arr[i] = SIZE - i;
+        arr.push_back(n - i);
     }
 
     // Record Runtime
     chrono::steady_clock::time_point begin = chrono::steady_clock::now();
     mergeSort(arr, n);
     chrono::steady_clock::time_point end = chrono::steady_clock::now();
-    cout << "Time difference = " << chrono::duration_cast<chrono::milliseconds>(end - begin).count() << "[ms]" << endl;
+    cout << "Time difference = " << chrono::duration_cast<chrono::microseconds>(end - begin).count() << "[us]" << endl;
 
     return 0;
 }

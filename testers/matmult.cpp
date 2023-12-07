@@ -1,48 +1,47 @@
-#define _QUEUE 9
+#define _QUEUE 152
 
-// #include <mmintrin.h>
-// #include <xmmintrin.h>
+#include <mmintrin.h>
+#include <xmmintrin.h>
 #include <iostream>
 #include <chrono>
+#include <vector>
 
 using namespace std;
 
-#define SIZE 170000
 #define mat(A, x, y, Y) A[x * Y + y]
 
-void mulMat(int X, int Y, int Z, int* A, int* B, int* C) { 
+void mulMat(int X, int Y, int Z, vector<int> & A, vector<int> & B, vector<int> & C) { 
     for (int i = 0; i < X; i++) {
         for (int k = 0; k < Z; k++) {
             mat(C, i, k, Z) = 0;
             int j = 0;
             int tmp = k;
 
-int tmp_QUEUE[_QUEUE];
-   int _NEXT_AVAIL = _QUEUE - 2;
-   int _NEXT_ACCESS = 0;
-   for (int _IT = 0; _IT < _QUEUE; _IT++) {
-               tmp += Z;
-   // _mm_prefetch((const char *)&B[tmp], _MM_HINT_T0);
-   tmp_QUEUE[_IT] = tmp;
-   }
-   for (int _IT = 0; _IT < Y - _QUEUE; _IT++){
-   tmp = tmp_QUEUE[_NEXT_AVAIL];
-               tmp += Z;
-   // _mm_prefetch((const char *)&B[tmp], _MM_HINT_T0);
-   _NEXT_AVAIL = (_NEXT_AVAIL + 1) % _QUEUE;
-   tmp_QUEUE[_NEXT_AVAIL] = tmp;
-   tmp = tmp_QUEUE[_NEXT_ACCESS];
-   _NEXT_ACCESS = (_NEXT_ACCESS + 1) % _QUEUE;
-               mat(C, i, k, Z) += mat(A, i, j, Y) * B[tmp];
-               j = j + 1;
-   }
-   for (int _IT = 0; _IT < _QUEUE; _IT++){
-               tmp += Z;
-   tmp = tmp_QUEUE[_NEXT_ACCESS];
-   _NEXT_ACCESS = (_NEXT_ACCESS + 1) % _QUEUE;
-               mat(C, i, k, Z) += mat(A, i, j, Y) * B[tmp];
-               j = j + 1;
-   }
+    int tmp_QUEUE[_QUEUE];
+    int _NEXT_AVAIL = _QUEUE - 2;
+    int _NEXT_ACCESS = 0;
+    for (int _IT = 0; _IT < _QUEUE; _IT++) {
+                tmp += Z;
+        _mm_prefetch((const char *)&B[tmp], _MM_HINT_T0);
+        tmp_QUEUE[_IT] = tmp;
+    }
+    for (int _IT = 0; _IT < Y - _QUEUE; _IT++) {
+        tmp = tmp_QUEUE[_NEXT_AVAIL];
+                tmp += Z;
+        _mm_prefetch((const char *)&B[tmp], _MM_HINT_T0);
+        _NEXT_AVAIL = (_NEXT_AVAIL + 1) % _QUEUE;
+        tmp_QUEUE[_NEXT_AVAIL] = tmp;
+        tmp = tmp_QUEUE[_NEXT_ACCESS];
+        _NEXT_ACCESS = (_NEXT_ACCESS + 1) % _QUEUE;
+                mat(C, i, k, Z) += mat(A, i, j, Y) * B[tmp];
+                j = j + 1;
+    }
+    for (int _IT = 0; _IT < _QUEUE; _IT++) {
+        tmp = tmp_QUEUE[_NEXT_ACCESS];
+        _NEXT_ACCESS = (_NEXT_ACCESS + 1) % _QUEUE;
+                mat(C, i, k, Z) += mat(A, i, j, Y) * B[tmp];
+                j = j + 1;
+    }
         }
     }
 }
@@ -55,9 +54,9 @@ int main(int args, char *argv[]) {
 
     // Matrix initialization
     // Store matrices as 1D array to ensure their entries are stored together in the memory
-    int A[SIZE];
-    int B[SIZE];
-    int C[SIZE];
+    vector<int> A(X * Y);
+    vector<int> B(Y * Z);
+    vector<int> C(X * Z);
     for (int i = 0; i < X; i++) {
         for (int j = 0; j < Y; j++) {
             mat(A, i, j, Y) = j;

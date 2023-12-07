@@ -1,12 +1,12 @@
 #include <iostream>
 #include <chrono>
+#include <vector>
 
 using namespace std;
 
-#define SIZE 170000
 #define mat(A, x, y, Y) A[x * Y + y]
 
-void mulMat(int X, int Y, int Z, int* A, int* B, int* C) { 
+void mulMat(int X, int Y, int Z, vector<int> & A, vector<int> & B, vector<int> & C) { 
     for (int i = 0; i < X; i++) {
         for (int k = 0; k < Z; k++) {
             mat(C, i, k, Z) = 0;
@@ -25,9 +25,9 @@ int main(int args, char *argv[]) {
 
     // Matrix initialization
     // Store matrices as 1D array to ensure their entries are stored together in the memory
-    int A[SIZE];
-    int B[SIZE];
-    int C[SIZE];
+    vector<int> A(X * Y);
+    vector<int> B(Y * Z);
+    vector<int> C(X * Z);
     for (int i = 0; i < X; i++) {
         for (int j = 0; j < Y; j++) {
             mat(A, i, j, Y) = j;
@@ -46,11 +46,11 @@ int main(int args, char *argv[]) {
     cout << "Time difference = " << chrono::duration_cast<chrono::milliseconds>(end - begin).count() << "[ms]" << endl;
 
     // Print something out so the compiler does not eliminate everything
-    cout << "Output = " << endl;
-    for (int k = 0; k < X * Z; k++) {
-        cout << C[k] << ", ";
-    }
-    cout << endl;
+    // cout << "Output = " << endl;
+    // for (int k = 0; k < X * Z; k++) {
+        // cout << C[k] << ", ";
+    // }
+    // cout << endl;
  
     return 0;
 }

@@ -26,9 +26,9 @@ if __name__ == "__main__":
     for i in range(REPEAT):
         os.system(f"{no_prefetch_binary_name} {INPUT} >> {result_file_name}")
 
-    for gap in range(2, max_gap, 2):
+    for gap in range(8, max_gap, 8):
         os.system(f"echo {gap} >> {result_file_name}")
-        converter(benchmark_name, str(gap))
+        converter.converter(benchmark_name, str(gap))
         os.system(f"g++ {tester_file_name} -o {binary_file_name} 2> {error_file_name}")
         for i in range(REPEAT):
             os.system(f"{binary_file_name} {INPUT} >> {result_file_name}")
