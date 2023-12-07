@@ -3,10 +3,12 @@ import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
     benchmark_name = sys.argv[1]
-    result_file_name = os.path.join("results", benchmark_name + ".txt")
+    result_file_name = os.path.join("results", benchmark_name + "_old.txt")
+    graph_file_name = os.path.join("results", benchmark_name + ".png")
 
     f_result = open(result_file_name, 'r')
     nextline = f_result.readline()
+    labels = []
     results = []
 
     # Record Data
@@ -17,6 +19,7 @@ if __name__ == "__main__":
                 raise ValueError("Incorrect result file format")
             results[-1].append(int(next_segment[3][:-5]))
         else:
+            labels.append(next_segment[0])
             results.append([])
         nextline = f_result.readline()
 
@@ -26,6 +29,9 @@ if __name__ == "__main__":
         results[i] = sum(results[i]) / len(results[i])
         print(f"i = {i}, time = {results[i]}")
     
-    x = [i for i in range(len(results))]
+    baseline = results[0]
+    results = results[1:]
+
+    x = [int(i) for i in labels[1:]]
     plt.plot(x, results)
-    plt.show()
+    plt.savefig(graph_file_name)
