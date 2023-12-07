@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
     benchmark_name = sys.argv[1]
-    result_file_name = os.path.join("results", benchmark_name + "_old.txt")
+    result_file_name = os.path.join("results", benchmark_name + ".txt")
     graph_file_name = os.path.join("results", benchmark_name + ".png")
 
     f_result = open(result_file_name, 'r')
@@ -31,7 +31,14 @@ if __name__ == "__main__":
     
     baseline = results[0]
     results = results[1:]
+    f = plt.figure() 
+    f.set_figwidth(10) 
+    f.set_figheight(5)
 
     x = [int(i) for i in labels[1:]]
     plt.plot(x, results)
+    plt.hlines(baseline, xmin=0, xmax=x[-1], colors="red", linestyles="dashed")
+    plt.xlabel("Prefetch Distance (number of iterations in advance)")
+    plt.ylabel("Program Runtime (ms)") 
+
     plt.savefig(graph_file_name)

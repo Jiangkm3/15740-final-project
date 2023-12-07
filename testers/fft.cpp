@@ -1,7 +1,7 @@
-#define _QUEUE 58
+#define _QUEUE 10
 
-#include <mmintrin.h>
-#include <xmmintrin.h>
+// #include <mmintrin.h>
+// #include <xmmintrin.h>
 #include <iostream>
 #include <chrono>
 #include <complex>
@@ -18,45 +18,41 @@ void fft(vector<cd> & a, bool invert) {
     int i = 0;
     int j = 0;
 
-int j_QUEUE[_QUEUE];
-   int _NEXT_AVAIL = _QUEUE - 2;
-   int _NEXT_ACCESS = 0;
-   for (int _IT = 0; _IT < _QUEUE; _IT++) {
-       int bit = n >> 1;
-       for (; j & bit; bit >>= 1)
-           j ^= bit;
-       j ^= bit;
-   _mm_prefetch((const char *)&a[j], _MM_HINT_T0);
-   j_QUEUE[_IT] = j;
-   }
-   for (int _IT = 0; _IT < n-1 - _QUEUE; _IT++){
-   j = j_QUEUE[_NEXT_AVAIL];
-       int bit = n >> 1;
-       for (; j & bit; bit >>= 1)
-           j ^= bit;
-       j ^= bit;
-   _mm_prefetch((const char *)&a[j], _MM_HINT_T0);
-   _NEXT_AVAIL = (_NEXT_AVAIL + 1) % _QUEUE;
-   j_QUEUE[_NEXT_AVAIL] = j;
-   j = j_QUEUE[_NEXT_ACCESS];
-   _NEXT_ACCESS = (_NEXT_ACCESS + 1) % _QUEUE;
-       i = i + 1;
-       if (i < j) {
-           swap(a[i], a[j]);
-       }
-   }
-   for (int _IT = 0; _IT < _QUEUE; _IT++){
-       int bit = n >> 1;
-       for (; j & bit; bit >>= 1)
-           j ^= bit;
-       j ^= bit;
-   j = j_QUEUE[_NEXT_ACCESS];
-   _NEXT_ACCESS = (_NEXT_ACCESS + 1) % _QUEUE;
-       i = i + 1;
-       if (i < j) {
-           swap(a[i], a[j]);
-       }
-   }
+    int j_QUEUE[_QUEUE];
+    int _NEXT_AVAIL = _QUEUE - 2;
+    int _NEXT_ACCESS = 0;
+    for (int _IT = 0; _IT < _QUEUE; _IT++) {
+        int bit = n >> 1;
+        for (; j & bit; bit >>= 1)
+            j ^= bit;
+        j ^= bit;
+        // _mm_prefetch((const char *)&a[j], _MM_HINT_T0);
+        j_QUEUE[_IT] = j;
+    }
+    for (int _IT = 0; _IT < n-1 - _QUEUE; _IT++) {
+        j = j_QUEUE[_NEXT_AVAIL];
+        int bit = n >> 1;
+        for (; j & bit; bit >>= 1)
+            j ^= bit;
+        j ^= bit;
+        // _mm_prefetch((const char *)&a[j], _MM_HINT_T0);
+        _NEXT_AVAIL = (_NEXT_AVAIL + 1) % _QUEUE;
+        j_QUEUE[_NEXT_AVAIL] = j;
+        j = j_QUEUE[_NEXT_ACCESS];
+        _NEXT_ACCESS = (_NEXT_ACCESS + 1) % _QUEUE;
+        i = i + 1;
+        if (i < j) {
+            swap(a[i], a[j]);
+        }
+    }
+    for (int _IT = 0; _IT < _QUEUE; _IT++) {
+        j = j_QUEUE[_NEXT_ACCESS];
+        _NEXT_ACCESS = (_NEXT_ACCESS + 1) % _QUEUE;
+        i = i + 1;
+        if (i < j) {
+            swap(a[i], a[j]);
+        }
+    }
 
     for (int len = 2; len <= n; len <<= 1) {
         double ang = 2 * PI / len * (invert ? -1 : 1);

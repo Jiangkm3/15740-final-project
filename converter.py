@@ -1,6 +1,6 @@
 import os, sys
 
-INDENT = "   "
+INDENT = "    "
 REPEAT = 20
 
 def converter(benchmark_name, gap):
@@ -9,8 +9,8 @@ def converter(benchmark_name, gap):
 
     # Prefetcher Headers
     f_tester.write("#define _QUEUE " + gap + "\n\n")
-    f_tester.write("#include <mmintrin.h>\n")
-    f_tester.write("#include <xmmintrin.h>\n")
+    f_tester.write("// #include <mmintrin.h>\n")
+    f_tester.write("// #include <xmmintrin.h>\n")
 
     nextline = f_raw.readline()
 
@@ -61,8 +61,8 @@ def converter(benchmark_name, gap):
 
                     head.append(INDENT + f"for (int _IT = 0; _IT < _QUEUE; _IT++) " + "{\n")
                     # Q: What should we do if end < gap??
-                    body.append(INDENT + f"for (int _IT = 0; _IT < {end} - _QUEUE; _IT++)" + "{\n")
-                    tail.append(INDENT + f"for (int _IT = 0; _IT < _QUEUE; _IT++)" + "{\n")
+                    body.append(INDENT + f"for (int _IT = 0; _IT < {end} - _QUEUE; _IT++) " + "{\n")
+                    tail.append(INDENT + f"for (int _IT = 0; _IT < _QUEUE; _IT++) " + "{\n")
                     state = 1
                 case "ADDR":
                     if state == 0:
@@ -74,38 +74,51 @@ def converter(benchmark_name, gap):
                         vars_list.append(next_segment[0])
                         next_segment = next_segment[1:]
                     for var in vars_list:
-                        body.append(INDENT + f"{var} = {var}_QUEUE[_NEXT_AVAIL];\n")
+                        body.append(2 * INDENT + f"{var} = {var}_QUEUE[_NEXT_AVAIL];\n")
+                        id_q = f"{var}_QUEUE"
+                        if not var in index_list:
+                            # Initialize a new queue for previous iteration of the index
+                            head.insert(0, INDENT + f"int {id_q}[_QUEUE];\n")
+                            index_list.append(var)
                     state = 2
                 case "PREFETCH":
                     if state == 0:
                         raise ValueError("Memory MACROS needs to be within loops")
                     array = next_segment[2]
                     index = next_segment[3]
-                    id_q = f"{index}_QUEUE"
-                    if not index in index_list:
-                        # Initialize a new queue for previous iteration of the index
-                        head.insert(0, f"int {id_q}[_QUEUE];\n")
-                        index_list.append(index)
-                    head.append(INDENT + f"_mm_prefetch((const char *)&{array}[{index}], _MM_HINT_T0);\n")
-                    head.append(INDENT + f"{id_q}[_IT] = {index};\n")
-                    
+                    head.append(2 * INDENT + f"// _mm_prefetch((const char *)&{array}[{index}], _MM_HINT_T0);\n")
                     # Store the prefetched address into queue
-                    body.append(INDENT + f"_mm_prefetch((const char *)&{array}[{index}], _MM_HINT_T0);\n")
-                    body.append(INDENT + "_NEXT_AVAIL = (_NEXT_AVAIL + 1) % _QUEUE;\n")
-                    body.append(INDENT + f"{id_q}[_NEXT_AVAIL] = {index};\n")
-                    # Load the address used for access out of the queue
-                    body.append(INDENT + f"{index} = {id_q}[_NEXT_ACCESS];\n")
-                    body.append(INDENT + "_NEXT_ACCESS = (_NEXT_ACCESS + 1) % _QUEUE;\n")
-
-                    tail.append(INDENT + f"{index} = {id_q}[_NEXT_ACCESS];\n")
-                    tail.append(INDENT + "_NEXT_ACCESS = (_NEXT_ACCESS + 1) % _QUEUE;\n")
+                    body.append(2 * INDENT + f"// _mm_prefetch((const char *)&{array}[{index}], _MM_HINT_T0);\n")
+                    
                 case "OTHER":
                     if state == 0:
                         raise ValueError("Memory MACROS needs to be within loops")
+                    if state == 2:
+                        body.append(2 * INDENT + "_NEXT_AVAIL = (_NEXT_AVAIL + 1) % _QUEUE;\n")
+                        for var in index_list:
+                            id_q = f"{var}_QUEUE"
+                            head.append(2 * INDENT + f"{id_q}[_IT] = {var};\n")
+                            body.append(2 * INDENT + f"{id_q}[_NEXT_AVAIL] = {var};\n")
+                            # Load the address used for access out xof the queue
+                            body.append(2 * INDENT + f"{var} = {id_q}[_NEXT_ACCESS];\n")
+                            tail.append(2 * INDENT + f"{var} = {id_q}[_NEXT_ACCESS];\n")
+                        body.append(2 * INDENT + "_NEXT_ACCESS = (_NEXT_ACCESS + 1) % _QUEUE;\n")
+                        tail.append(2 * INDENT + "_NEXT_ACCESS = (_NEXT_ACCESS + 1) % _QUEUE;\n")
                     state = 1
                 case "ENDLOOP":
                     if state == 0:
                         raise ValueError("Cannot terminate a loop that does not exist")
+                    if state == 2:
+                        for var in index_list:
+                            id_q = f"{var}_QUEUE"
+                            head.append(2 * INDENT + f"{id_q}[_IT] = {var};\n")
+                            body.append(2 * INDENT + f"{id_q}[_NEXT_AVAIL] = {var};\n")
+                            # Load the address used for access out xof the queue
+                            body.append(2 * INDENT + f"{var} = {id_q}[_NEXT_ACCESS];\n")
+                            tail.append(2 * INDENT + f"{var} = {id_q}[_NEXT_ACCESS];\n")
+                        body.append(2 * INDENT + "_NEXT_ACCESS = (_NEXT_ACCESS + 1) % _QUEUE;\n")
+                        tail.append(2 * INDENT + "_NEXT_ACCESS = (_NEXT_ACCESS + 1) % _QUEUE;\n")
+
                     head.append(INDENT + "}\n")
                     body.append(INDENT + "}\n")
                     tail.append(INDENT + "}\n")
@@ -113,7 +126,7 @@ def converter(benchmark_name, gap):
                     f_tester.writelines(body)
                     f_tester.writelines(tail)
                     head = []
-                    loop = []
+                    body = []
                     tail = []
                     index_list = []
                     state = 0
@@ -131,7 +144,6 @@ def converter(benchmark_name, gap):
                     if nextline != "\n":
                         head.append(INDENT + nextline)
                         body.append(INDENT + nextline)
-                        tail.append(INDENT + nextline)
                 case _:
                     raise ValueError("Unknown state: " + str(state))
         nextline = f_raw.readline()
@@ -141,29 +153,6 @@ def converter(benchmark_name, gap):
 
 if __name__ == "__main__":
     benchmark_name = sys.argv[1]
-    # gap is a STRING!
-    max_gap = int(sys.argv[2])
-    # PROGRAM INPUT, a STRING
-    INPUT = int(sys.argv[3])
+    gap = sys.argv[2]
     
-    result_file_name = os.path.join("results", benchmark_name + ".txt")
-    tester_file_name = os.path.join("testers", benchmark_name + ".cpp")
-    binary_file_name = os.path.join("testers", benchmark_name + ".exe")
-    error_file_name = os.path.join("results", "log.txt")
-
-    no_prefetch_file_name = os.path.join("raws", benchmark_name + "_no_prefetch.cpp")
-    no_prefetch_binary_name = os.path.join("raws", benchmark_name + ".exe")
-    os.system(f"break > {result_file_name}")
-
-    # Test Baseline
-    os.system(f"g++ {no_prefetch_file_name} -o {no_prefetch_binary_name} 2> {error_file_name}")
-    os.system(f"echo BASELINE >> {result_file_name}")
-    for i in range(REPEAT):
-        os.system(f"{no_prefetch_binary_name} {INPUT} >> {result_file_name}")
-
-    for gap in range(2, max_gap, 2):
-        os.system(f"echo {gap} >> {result_file_name}")
-        converter(benchmark_name, str(gap))
-        os.system(f"g++ {tester_file_name} -o {binary_file_name} 2> {error_file_name}")
-        for i in range(REPEAT):
-            os.system(f"{binary_file_name} {INPUT} >> {result_file_name}")
+    converter(benchmark_name, gap)
