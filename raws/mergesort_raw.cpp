@@ -2,7 +2,7 @@
 #include <chrono>
 #include <math.h>
 #include <vector>
-#define THRESHOLD 256
+#define THRESHOLD 1000
 
 using namespace std;
 
@@ -19,7 +19,7 @@ void mergeSort(vector<int> & arr, int n) {
     int curr_size;
     int left_start;
     int mid;
-    int REPEAT = n * ((int) log(n) + 1);
+    int REPEAT = n + (int) log(n) + 1;
     
     // Only start prefetching after curr_size reaches certain THRESHOLD
     for (curr_size = 1; curr_size < THRESHOLD; curr_size = 2 * curr_size) {
@@ -33,6 +33,7 @@ void mergeSort(vector<int> & arr, int n) {
 
             // Merge Subarrays arr[left_start...mid] & arr[mid+1...right_end]
             merge(arr, left_start, mid, right_end);
+            REPEAT--;
         }
     }
 

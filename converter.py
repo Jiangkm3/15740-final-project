@@ -1,16 +1,16 @@
 import os, sys
 
 INDENT = "    "
-REPEAT = 20
 
-def converter(benchmark_name, gap):
+def converter(benchmark_name, gap, USE_PREFETCH):
     f_raw = open(os.path.join("raws", benchmark_name + "_raw.cpp"), 'r')
     f_tester = open(os.path.join("testers", benchmark_name + ".cpp"), 'w')
 
     # Prefetcher Headers
     f_tester.write("#define _QUEUE " + gap + "\n\n")
-    f_tester.write("// #include <mmintrin.h>\n")
-    f_tester.write("// #include <xmmintrin.h>\n")
+    if USE_PREFETCH:
+        f_tester.write("#include <mmintrin.h>\n")
+        f_tester.write("#include <xmmintrin.h>\n")
 
     nextline = f_raw.readline()
 
@@ -86,9 +86,9 @@ def converter(benchmark_name, gap):
                         raise ValueError("Memory MACROS needs to be within loops")
                     array = next_segment[2]
                     index = next_segment[3]
-                    head.append(2 * INDENT + f"// _mm_prefetch((const char *)&{array}[{index}], _MM_HINT_T0);\n")
-                    # Store the prefetched address into queue
-                    body.append(2 * INDENT + f"// _mm_prefetch((const char *)&{array}[{index}], _MM_HINT_T0);\n")
+                    if USE_PREFETCH:
+                        head.append(2 * INDENT + f"_mm_prefetch((const char *)&{array}[{index}], _MM_HINT_T0);\n")
+                        body.append(2 * INDENT + f"_mm_prefetch((const char *)&{array}[{index}], _MM_HINT_T0);\n")
                     
                 case "OTHER":
                     if state == 0:
@@ -97,6 +97,7 @@ def converter(benchmark_name, gap):
                         body.append(2 * INDENT + "_NEXT_AVAIL = (_NEXT_AVAIL + 1) % _QUEUE;\n")
                         for var in index_list:
                             id_q = f"{var}_QUEUE"
+                            # Store the prefetched address into queue
                             head.append(2 * INDENT + f"{id_q}[_IT] = {var};\n")
                             body.append(2 * INDENT + f"{id_q}[_NEXT_AVAIL] = {var};\n")
                             # Load the address used for access out xof the queue

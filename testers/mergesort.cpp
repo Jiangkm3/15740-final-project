@@ -1,11 +1,12 @@
-#define _QUEUE 8
+#define _QUEUE 152
 
-// #include <mmintrin.h>
-// #include <xmmintrin.h>
+#include <mmintrin.h>
+#include <xmmintrin.h>
 #include <iostream>
 #include <chrono>
 #include <math.h>
 #include <vector>
+#define THRESHOLD 1000
 
 using namespace std;
 
@@ -19,11 +20,27 @@ int min(int x, int y) {
 
 /* Iterative mergesort function to sort arr[0...n-1] */
 void mergeSort(vector<int> & arr, int n) {
-    int curr_size = 1;
-    int left_start = -2;
+    int curr_size;
+    int left_start;
     int mid;
-    int REPEAT = n * ((int) log(n) + 1);
+    int REPEAT = n + (int) log(n) + 1;
     
+    // Only start prefetching after curr_size reaches certain THRESHOLD
+    for (curr_size = 1; curr_size < THRESHOLD; curr_size = 2 * curr_size) {
+        // Pick starting point of different subarrays of current size
+        for (left_start = 0; left_start < n - 1; left_start += 2 * curr_size) {
+            // Find ending point of left subarray. mid+1 is starting 
+            // point of right
+            int mid = min(left_start + curr_size - 1, n - 1);
+
+            int right_end = min(left_start + 2 * curr_size - 1, n - 1);
+
+            // Merge Subarrays arr[left_start...mid] & arr[mid+1...right_end]
+            merge(arr, left_start, mid, right_end);
+            REPEAT--;
+        }
+    }
+
     int mid_QUEUE[_QUEUE];
     int curr_size_QUEUE[_QUEUE];
     int left_start_QUEUE[_QUEUE];
@@ -38,8 +55,8 @@ void mergeSort(vector<int> & arr, int n) {
             }
             mid = min(left_start + curr_size - 1, n - 1) + 1;
         }
-        // _mm_prefetch((const char *)&arr[left_start], _MM_HINT_T0);
-        // _mm_prefetch((const char *)&arr[mid], _MM_HINT_T0);
+        _mm_prefetch((const char *)&arr[left_start], _MM_HINT_T0);
+        _mm_prefetch((const char *)&arr[mid], _MM_HINT_T0);
         left_start_QUEUE[_IT] = left_start;
         curr_size_QUEUE[_IT] = curr_size;
         mid_QUEUE[_IT] = mid;
@@ -56,8 +73,8 @@ void mergeSort(vector<int> & arr, int n) {
             }
             mid = min(left_start + curr_size - 1, n - 1) + 1;
         }
-        // _mm_prefetch((const char *)&arr[left_start], _MM_HINT_T0);
-        // _mm_prefetch((const char *)&arr[mid], _MM_HINT_T0);
+        _mm_prefetch((const char *)&arr[left_start], _MM_HINT_T0);
+        _mm_prefetch((const char *)&arr[mid], _MM_HINT_T0);
         _NEXT_AVAIL = (_NEXT_AVAIL + 1) % _QUEUE;
         left_start_QUEUE[_NEXT_AVAIL] = left_start;
         left_start = left_start_QUEUE[_NEXT_ACCESS];
