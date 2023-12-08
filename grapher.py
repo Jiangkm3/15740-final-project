@@ -55,7 +55,7 @@ if __name__ == "__main__":
     x = [int(i) for i in labels[1:]]
     plt.plot(x, results, label = "w/ prefetch")
     plt.plot(x, results_no_prefetch, label = "w/o prefetch")
-    plt.hlines(baseline, xmin=0, xmax=x[-1], colors="red", linestyles="dashed")
+    plt.hlines(baseline, xmin=0, xmax=x[-1], colors="red", linestyles="dashed", label = "baseline")
     plt.xlabel("Prefetch Distance (number of iterations in advance)")
     plt.ylabel("Program Runtime (ms)") 
 
